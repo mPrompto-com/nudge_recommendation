@@ -1,6 +1,7 @@
 # main.py
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
@@ -13,6 +14,16 @@ load_dotenv()
 app = FastAPI(
     title="Fragrance Recommendation API",
     description="An API to get personalized fragrance recommendations."
+)
+
+origins = ["*"]
+# --- MIDDLEWARE ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- Globals & Startup ---
@@ -54,7 +65,7 @@ async def generate_recommendations_endpoint(request: RecommendationRequest):
     if not profile:
         raise HTTPException(status_code=400, detail="Q&A pairs were empty or invalid.")
 
-    matches = get_recommendations(profile, openai_client, pinecone_index, top_k=3)
+    matches = await get_recommendations(profile, pinecone_index, openai_client, top_k=3)
     if not matches:
         raise HTTPException(status_code=404, detail="No recommendations could be generated for this profile.")
 

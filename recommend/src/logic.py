@@ -4,7 +4,7 @@ def create_user_profile(qa_pairs: list[dict]) -> str | None:
         return None
     
     # Extract just the answers
-    answers = [item['answer'] for item in qa_pairs]
+    answers = [item.answer for item in qa_pairs]
     
     descriptive_answers = [
         ans for ans in answers 
@@ -12,13 +12,13 @@ def create_user_profile(qa_pairs: list[dict]) -> str | None:
     ]
     return ". ".join(descriptive_answers)
 
-def get_recommendations(user_profile_text: str, index, client, top_k: int = 3) -> list:
+async def get_recommendations(user_profile_text: str, index, client, top_k: int = 3) -> list:
     """Gets fragrance recommendations from Pinecone."""
     if not user_profile_text:
         return []
     
     try:
-        res = client.embeddings.create(
+        res = await client.embeddings.create(
             input=[user_profile_text], 
             model='text-embedding-3-large'
         )

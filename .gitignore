@@ -1,0 +1,5 @@
+venv/
+venv_recommend/
+.env
+__pychache__/
+*.pyc
