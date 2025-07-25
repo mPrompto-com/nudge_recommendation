@@ -49,7 +49,11 @@ async def generate_reasoning_with_llm(user_profile: str, fragrance_metadata: dic
     prompt_messages = [
         {
             "role": "system",
-            "content": "You are a world-class Fragrance Concierge. Your task is to provide a sophisticated and persuasive reasoning for a perfume recommendation. Synthesize the user's preferences with the perfume's characteristics. Go beyond simple matching and create a short, elegant narrative. Speak directly to the user."
+            "content": '''You are a world-class Fragrance Concierge. Your task is to provide a sophisticated and persuasive reasoning for a perfume recommendation. Synthesize the user's preferences with the perfume's characteristics. Go beyond simple matching and create a short, elegant narrative. Speak directly to the user. 
+            Speak directly to the user. Keep it persuasive, under 30 words, and conversational.
+            At least one reasoning must refer explicitly to the user’s preferences.
+            The tone should feel like a confident friend helping them make a smart choice.
+            Avoid fluff or poetic language.'''
         },
         {
             "role": "user",

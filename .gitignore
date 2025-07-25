@@ -3,3 +3,4 @@ venv_recommend/
 .env
 __pychache__/
 *.pyc
+.DS_Store

@@ -6,8 +6,8 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from pinecone import Pinecone
-# Note: No more 'utils' import
 from src.logic import create_user_profile, get_recommendations, generate_reasoning_with_llm
+import asyncio
 
 load_dotenv()
 
@@ -68,19 +68,38 @@ async def generate_recommendations_endpoint(request: RecommendationRequest):
     matches = await get_recommendations(profile, pinecone_index, openai_client, top_k=3)
     if not matches:
         raise HTTPException(status_code=404, detail="No recommendations could be generated for this profile.")
+    
+    reasoning_tasks = []
+    for match in matches:
+        task = generate_reasoning_with_llm(profile, match['metadata'], openai_client)
+        reasoning_tasks.append(task)
 
+    # 2. Run all tasks concurrently and wait for them all to complete
+    reasoning_results = await asyncio.gather(*reasoning_tasks)
+
+    # 3. Build the final response
     output_data = {"fingerprint": request.fingerprint, "recommendations": []}
     for i, match in enumerate(matches):
-        metadata = match['metadata']
-        reasoning = await generate_reasoning_with_llm(profile, metadata, openai_client)
-        
         output_data["recommendations"].append({
             "rank": i + 1,
-            "perfume_name": metadata.get('perfume_name'),
-            "handle": metadata.get("handle"),
+            "perfume_name": match['metadata'].get('perfume_name'),
+            "handle": match['metadata'].get("handle"),
             "similarity_score": match['score'],
-            "reasoning": reasoning
+            "reasoning": reasoning_results[i] # Get the corresponding result
         })
+    
+    # output_data = {"fingerprint": request.fingerprint, "recommendations": []}
+    # for i, match in enumerate(matches):
+    #     metadata = match['metadata']
+    #     reasoning = await generate_reasoning_with_llm(profile, metadata, openai_client)
+        
+    #     output_data["recommendations"].append({
+    #         "rank": i + 1,
+    #         "perfume_name": metadata.get('perfume_name'),
+    #         "handle": metadata.get("handle"),
+    #         "similarity_score": match['score'],
+    #         "reasoning": reasoning
+    #     })
         
     return output_data
 
